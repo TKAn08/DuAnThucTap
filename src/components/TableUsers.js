@@ -2,14 +2,33 @@ import { useEffect, useState } from 'react';
 import Table from 'react-bootstrap/Table';
 import { fetchAllUser } from '../services/UserService';
 import ReactPaginate from 'react-paginate';
+import ModalAddNew from './ModalAddNew';
+import ModalEditUser from './ModalEditUser';
 
 const TableUsers = (props) => {
     const [listUsers, setListUsers] = useState([]);
     const [totalUsers, setTotalUsers] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
+
+    const [isShowAddNew, setIsShowAddNew] = useState(false);
+    const [isShowEdit, setIsShowEdit] = useState(false);
+    const [dataEdit, setDataEdit] = useState({});
+    const handleClose = () => {
+        setIsShowAddNew(false);
+        setIsShowEdit(false);
+    }
     useEffect(() => {
         getUser(1);
     }, []);
+
+    const handleUpdateTable = user => {
+        setListUsers([user, ...listUsers]);
+    }
+
+    const handleEditUser = user => {
+        setIsShowEdit(true);
+        setDataEdit(user);
+    }
 
     const getUser = async (page) => {
         let res = await fetchAllUser(page);
@@ -23,9 +42,12 @@ const TableUsers = (props) => {
     const handlePageClick = (event) => {
         getUser(+event.selected + 1);
     }
-
     return (
         <>
+            <div className='my-3 add-new'>
+                <span> <b>List Users:</b> </span>
+                <button className='btn btn-success' onClick={() => setIsShowAddNew(true)}>Thêm mới</button>
+            </div>
             <Table striped bordered hover>
                 <thead>
                     <tr>
@@ -44,13 +66,17 @@ const TableUsers = (props) => {
                                     <td>{user.email}</td>
                                     <td>{user.first_name}</td>
                                     <td>{user.last_name}</td>
+                                    <td>
+                                        <button class="btn btn-primary mx-3" onClick={() => handleEditUser(user)}>Edit</button>
+                                        <button class="btn btn-warning">Delete</button>
+                                    </td>
                                 </tr>
                             )
                         })
                     }
 
                 </tbody>
-            </Table>
+            </Table >
             <ReactPaginate
                 breakLabel="..."
                 nextLabel="next >"
@@ -70,6 +96,17 @@ const TableUsers = (props) => {
                 breakLinkClassName='page-link'
                 containerClassName='pagination'
                 activeClassName='active'
+            />
+            <ModalAddNew
+                show={isShowAddNew}
+                handleClose={handleClose}
+                handleUpdateTable={handleUpdateTable}
+            />
+
+            <ModalEditUser
+                show={isShowEdit}
+                handleClose={handleClose}
+                dataEdit={dataEdit}
             />
         </>);
 }
